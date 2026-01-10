@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Among Us - Ultimate Detective Board 2026</title>
+    <title>Modded Detective Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Space+Mono:wght@400;700&display=swap');
@@ -37,14 +37,33 @@
             pointer-events: none;
         }
 
-        .player-marker {
+        .marker-wrapper {
             position: absolute;
-            width: 34px;
-            height: 34px;
             transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             pointer-events: none;
             z-index: 50;
+        }
+
+        .player-marker {
+            width: 34px;
+            height: 34px;
+            pointer-events: none;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .marker-role-tag {
+            font-size: 7px;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+            white-space: nowrap;
         }
 
         .crew-card {
@@ -86,7 +105,7 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 shadow-xl">
             <div class="text-center md:text-left">
-                <h1 class="text-3xl game-font text-red-500 tracking-tighter uppercase italic">Investigation Hub</h1>
+                <h1 class="text-3xl game-font text-red-500 tracking-tighter uppercase italic">Modded Detective Hub</h1>
                 <div class="flex items-center gap-3 mt-1">
                     <span class="text-[10px] font-bold text-slate-500 tracking-widest">MAP PROTOCOL:</span>
                     <select id="mapSelect" onchange="changeMap(this.value)" class="bg-black text-cyan-400 text-xs font-bold p-1 px-3 rounded-full border border-slate-700 outline-none hover:border-cyan-500 transition-colors">
@@ -119,9 +138,9 @@
                 
                 <div class="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between text-[10px] font-bold uppercase gap-4">
                     <div class="flex gap-4">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Safe</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]"></span> Sus</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span> Impostor</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-800 shadow-[0_0_8px_rgba(22,101,52,0.8)]"></span> Safe</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-800 shadow-[0_0_8px_rgba(133,77,14,0.8)]"></span> Sus</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-950 shadow-[0_0_8px_rgba(69,10,10,0.8)]"></span> Impostor</div>
                     </div>
                     <div class="text-slate-500 italic">Select crewmate then click map to pin location</div>
                 </div>
@@ -131,11 +150,11 @@
 
     <script>
         const mapData = {
-            skeld: "./Maps/Skeld.png",
-            mira: "./Maps/Mira.png",
+            skeld: "./Maps/TheSkeld.png",
+            mira: "./Maps/MiraHQ.png",
             polus: "./Maps/Polus.png",
-            airship: "./Maps/Airship.png",
-            fungle: "./Maps/Fungle.png"
+            airship: "./Maps/TheAirship.png",
+            fungle: "./Maps/TheFungle.png"
         };
 
         const allColors = [
@@ -250,13 +269,32 @@
             state.markers.forEach((m) => {
                 const colorObj = allColors.find(c => c.name === m.color);
                 const p = state.players[m.color];
+                const currentRole = roles.find(r => r.id === p.role);
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'marker-wrapper';
+                wrapper.style.left = `${m.x}%`; wrapper.style.top = `${m.y}%`;
+
+                // Role Tag above marker
+                const roleTag = document.createElement('div');
+                roleTag.className = `marker-role-tag ${currentRole.color}`;
+                roleTag.innerText = currentRole.label;
+                wrapper.appendChild(roleTag);
+
+                // Marker with adjusted glow
                 const div = document.createElement('div');
                 div.className = 'player-marker';
-                div.style.left = `${m.x}%`; div.style.top = `${m.y}%`;
-                const glow = { neutral: '', safe: '0 0 12px #22c55e', sus: '0 0 12px #eab308', impostor: '0 0 15px #ef4444' };
-                div.style.filter = `drop-shadow(${glow[p.sus] || '0 3px 6px rgba(0,0,0,0.6)'})`;
+                const glows = { 
+                    neutral: '0 3px 6px rgba(0,0,0,0.6)', 
+                    safe: '0 0 10px rgba(21,128,61,0.9)', 
+                    sus: '0 0 10px rgba(161,98,7,0.9)', 
+                    impostor: '0 0 12px rgba(127,29,29,1)' 
+                };
+                div.style.filter = `drop-shadow(${glows[p.sus]})`;
                 div.innerHTML = getCrewSVG(colorObj, p.status === 'dead');
-                layer.appendChild(div);
+                wrapper.appendChild(div);
+                
+                layer.appendChild(wrapper);
             });
         }
 
