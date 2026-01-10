@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Among Us - Ultimate Detective Board 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #0b0e14;
+            color: #e6edf3;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .game-font { font-family: 'Fredoka One', cursive; }
+
+        .map-container {
+            position: relative;
+            background: #000;
+            border: 3px solid #30363d;
+            border-radius: 16px;
+            overflow: hidden;
+            width: 100%;
+            cursor: crosshair;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            aspect-ratio: 16/9;
+        }
+
+        #mapDisplay {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .player-marker {
+            position: absolute;
+            width: 34px;
+            height: 34px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 50;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .crew-card {
+            transition: all 0.1s ease;
+            border-left-width: 5px;
+        }
+
+        .crew-card.selected {
+            background-color: #21262d;
+            border-color: #58a6ff !important;
+            transform: scale(1.02);
+        }
+
+        .role-tag {
+            font-size: 8px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.2rem center;
+            background-size: 0.8em;
+            padding-right: 1.2rem;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-4">
+
+    <div class="max-w-[1700px] mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 shadow-xl">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl game-font text-red-500 tracking-tighter uppercase italic">Investigation Hub</h1>
+                <div class="flex items-center gap-3 mt-1">
+                    <span class="text-[10px] font-bold text-slate-500 tracking-widest">MAP PROTOCOL:</span>
+                    <select id="mapSelect" onchange="changeMap(this.value)" class="bg-black text-cyan-400 text-xs font-bold p-1 px-3 rounded-full border border-slate-700 outline-none hover:border-cyan-500 transition-colors">
+                        <option value="skeld">THE SKELD</option>
+                        <option value="mira">MIRA HQ</option>
+                        <option value="polus">POLUS</option>
+                        <option value="airship">THE AIRSHIP</option>
+                        <option value="fungle">THE FUNGLE</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="clearMarkers()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold border border-slate-600 shadow-md active:scale-95 transition">CLEAR MARKERS</button>
+                <button onclick="resetAll()" class="bg-red-900 hover:bg-red-800 px-4 py-2 rounded-lg text-xs font-bold border border-red-700 shadow-md active:scale-95 transition">RESET BOARD</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <!-- Left: Crew List -->
+            <div class="lg:col-span-4 xl:col-span-3 space-y-2 max-h-[82vh] overflow-y-auto pr-2 custom-scroll">
+                <div id="crewList" class="grid grid-cols-1 gap-1.5"></div>
+            </div>
+
+            <!-- Right: Map -->
+            <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-3">
+                <div class="map-container" id="mapWrapper">
+                    <img id="mapDisplay" src="" alt="Map View">
+                    <div id="markersLayer"></div>
+                </div>
+                
+                <div class="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between text-[10px] font-bold uppercase gap-4">
+                    <div class="flex gap-4">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Safe</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]"></span> Sus</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span> Impostor</div>
+                    </div>
+                    <div class="text-slate-500 italic">Select crewmate then click map to pin location</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mapData = {
+            skeld: "https://static.wikia.nocookie.net/among-us/images/8/82/Skeld_Map.png",
+            mira: "https://static.wikia.nocookie.net/among-us-wiki/images/7/77/MIRA_HQ_map.png/revision/latest?cb=20220403001822",
+            polus: "https://static.wikia.nocookie.net/among-us-wiki/images/a/ab/Polus_map.png/revision/latest?cb=20201111010008",
+            airship: "https://static.wikia.nocookie.net/among-us-wiki/images/a/a1/The_Airship_map.png/revision/latest?cb=20220622191604",
+            fungle: "https://static.wikia.nocookie.net/among-us-wiki/images/3/39/The_Fungle_map.png/revision/latest?cb=20231025222724"
+        };
+
+        const allColors = [
+            { name: 'Red', hex: '#C51111', shadow: '#7A0808' }, { name: 'Blue', hex: '#132ED1', shadow: '#09158E' },
+            { name: 'Green', hex: '#117F2D', shadow: '#0A4D1A' }, { name: 'Pink', hex: '#ED54BA', shadow: '#AB3087' },
+            { name: 'Orange', hex: '#EF7D0D', shadow: '#B35308' }, { name: 'Yellow', hex: '#F5F557', shadow: '#C2C21B' },
+            { name: 'Black', hex: '#3F474E', shadow: '#1E2124' }, { name: 'White', hex: '#D6E0F0', shadow: '#8394BF' },
+            { name: 'Purple', hex: '#6B2FBB', shadow: '#4B1A83' }, { name: 'Brown', hex: '#71491E', shadow: '#4E3214' },
+            { name: 'Cyan', hex: '#38FEDC', shadow: '#24A9BE' }, { name: 'Lime', hex: '#50EF39', shadow: '#24A91E' },
+            { name: 'Maroon', hex: '#6B0B0B', shadow: '#440505' }, { name: 'Rose', hex: '#ECC0D3', shadow: '#B2889A' },
+            { name: 'Banana', hex: '#FFFEBE', shadow: '#D0C68F' }, { name: 'Gray', hex: '#758593', shadow: '#505F67' },
+            { name: 'Tan', hex: '#918877', shadow: '#615A4B' }, { name: 'Coral', hex: '#D76464', shadow: '#9D4141' }
+        ];
+
+        const roles = [
+            { id: 'crew', label: 'Crewmate', color: 'bg-slate-600' },
+            { id: 'det', label: 'Detective', color: 'bg-indigo-600' },
+            { id: 'viper', label: 'Viper', color: 'bg-emerald-900' },
+            { id: 'eng', label: 'Engineer', color: 'bg-orange-500' },
+            { id: 'sci', label: 'Scientist', color: 'bg-blue-400' },
+            { id: 'track', label: 'Tracker', color: 'bg-green-500' },
+            { id: 'noise', label: 'Noisemaker', color: 'bg-yellow-400' },
+            { id: 'imp', label: 'Impostor', color: 'bg-red-600' },
+            { id: 'shift', label: 'Shapeshifter', color: 'bg-pink-700' },
+            { id: 'phantom', label: 'Phantom', color: 'bg-purple-900' }
+        ];
+
+        let state = {
+            players: {},
+            selectedColor: 'Red',
+            markers: [],
+            currentMap: 'skeld'
+        };
+
+        function getCrewSVG(colorObj, isDead = false) {
+            const { hex, shadow } = colorObj;
+            if (isDead) {
+                return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 70 Q20 50 50 50 Q80 50 80 70 L80 95 L20 95 Z" fill="${hex}" stroke="black" stroke-width="4"/>
+                    <rect x="45" y="25" width="10" height="30" fill="white" stroke="black" stroke-width="2"/>
+                    <circle cx="45" cy="25" r="8" fill="white" stroke="black" stroke-width="2"/><circle cx="55" cy="25" r="8" fill="white" stroke="black" stroke-width="2"/>
+                </svg>`;
+            }
+            return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <rect x="15" y="35" width="20" height="40" rx="5" fill="${shadow}" stroke="black" stroke-width="3"/>
+                <path d="M30 20 Q30 10 55 10 Q80 10 80 20 L80 80 Q80 90 70 90 L40 90 Q30 90 30 80 Z" fill="${hex}" stroke="black" stroke-width="4"/>
+                <path d="M52 25 Q85 25 85 40 Q85 55 52 55 Q42 55 42 40 Q42 25 52 25 Z" fill="#8BB5C3" stroke="black" stroke-width="3"/>
+            </svg>`;
+        }
+
+        function init() {
+            allColors.forEach(c => {
+                state.players[c.name] = { status: 'alive', sus: 'neutral', role: 'crew' };
+            });
+            renderCrewList();
+            changeMap('skeld');
+        }
+
+        function changeMap(mapId) { 
+            state.currentMap = mapId;
+            const img = document.getElementById('mapDisplay');
+            img.src = mapData[mapId];
+            renderMarkers();
+        }
+
+        function renderCrewList() {
+            const list = document.getElementById('crewList');
+            list.innerHTML = '';
+            allColors.forEach(c => {
+                const p = state.players[c.name];
+                const isSelected = state.selectedColor === c.name;
+                const card = document.createElement('div');
+                const susBorders = { neutral: 'border-slate-700', safe: 'border-green-500', sus: 'border-yellow-500', impostor: 'border-red-600' };
+                const currentRole = roles.find(r => r.id === p.role);
+
+                card.className = `crew-card p-2 bg-slate-800/40 rounded-xl cursor-pointer flex items-center justify-between border-l-[6px] ${susBorders[p.sus]} ${isSelected ? 'selected' : ''}`;
+                card.onclick = () => { state.selectedColor = c.name; renderCrewList(); };
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 ${p.status === 'dead' ? 'opacity-30 grayscale' : ''}">${getCrewSVG(c, p.status === 'dead')}</div>
+                        <div class="flex flex-col">
+                            <p class="font-bold text-[11px] uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-400'}">${c.name}</p>
+                            <span class="role-tag ${currentRole.color} text-[8px] text-white w-max">${currentRole.label}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1 items-end">
+                        <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'role', this.value)" class="text-[9px] bg-black p-1 rounded-md border border-slate-700 w-24 outline-none">
+                            ${roles.map(r => `<option value="${r.id}" ${p.role === r.id ? 'selected' : ''}>${r.label}</option>`).join('')}
+                        </select>
+                        <div class="flex gap-1">
+                            <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'sus', this.value)" class="text-[9px] bg-black p-1 rounded-md border border-slate-700 outline-none">
+                                <option value="neutral" ${p.sus === 'neutral'?'selected':''}>NTRL</option>
+                                <option value="safe" ${p.sus === 'safe'?'selected':''}>SAFE</option>
+                                <option value="sus" ${p.sus === 'sus'?'selected':''}>SUS</option>
+                                <option value="impostor" ${p.sus === 'impostor'?'selected':''}>IMP</option>
+                            </select>
+                            <button onclick="event.stopPropagation(); toggleDead('${c.name}')" class="text-[9px] py-1 px-2 rounded-md font-bold ${p.status === 'dead' ? 'bg-red-600' : 'bg-slate-700 hover:bg-slate-600'} transition-colors">${p.status === 'dead' ? 'DEAD' : 'ALIVE'}</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function updateProp(name, prop, val) { state.players[name][prop] = val; renderCrewList(); renderMarkers(); }
+        function toggleDead(name) { state.players[name].status = state.players[name].status === 'alive' ? 'dead' : 'alive'; renderCrewList(); renderMarkers(); }
+
+        function renderMarkers() {
+            const layer = document.getElementById('markersLayer');
+            layer.innerHTML = '';
+            state.markers.forEach((m) => {
+                const colorObj = allColors.find(c => c.name === m.color);
+                const p = state.players[m.color];
+                const div = document.createElement('div');
+                div.className = 'player-marker';
+                div.style.left = `${m.x}%`; div.style.top = `${m.y}%`;
+                const glow = { neutral: '', safe: '0 0 12px #22c55e', sus: '0 0 12px #eab308', impostor: '0 0 15px #ef4444' };
+                div.style.filter = `drop-shadow(${glow[p.sus] || '0 3px 6px rgba(0,0,0,0.6)'})`;
+                div.innerHTML = getCrewSVG(colorObj, p.status === 'dead');
+                layer.appendChild(div);
+            });
+        }
+
+        document.getElementById('mapWrapper').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+            const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+            const existingIdx = state.markers.findIndex(m => m.color === state.selectedColor);
+            if (existingIdx > -1) { state.markers[existingIdx].x = xPercent; state.markers[existingIdx].y = yPercent; }
+            else { state.markers.push({ color: state.selectedColor, x: xPercent, y: yPercent }); }
+            renderMarkers();
+        });
+
+        function clearMarkers() { state.markers = []; renderMarkers(); }
+        function resetAll() { if(confirm("RESET ALL DATA?")) { state.markers = []; init(); } }
+
+        init();
+    </script>
+</body>
+</html>
