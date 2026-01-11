@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Among Us - Ultimate Detective Board 2026</title>
+    <title>Modded Detective Board</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Space+Mono:wght@400;700&display=swap');
@@ -65,18 +65,38 @@
             text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
             white-space: nowrap;
         }
+        
+        .room-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 9px;
+             font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.65);
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            pointer-events: none;
+            z-index: 10;
+        }
 
         @media (max-width: 640px) {
             .player-marker {
-            width: 22px;
-            height: 22px;
+                width: 22px;
+                height: 22px;
             }
 
 
             .marker-role-tag {
-            font-size: 6px;
-            padding: 1px 3px;
-            margin-bottom: 1px;
+                font-size: 6px;
+                padding: 1px 3px;
+                margin-bottom: 1px;
+            }
+
+            .room-label {
+                font-size: 7px;
+                padding: 1px 4px;
             }
         }
 
@@ -134,6 +154,7 @@
             <div class="flex flex-wrap justify-center gap-3">
                 <button onclick="clearMarkers()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold border border-slate-600 shadow-md active:scale-95 transition">CLEAR MARKERS</button>
                 <button onclick="resetAll()" class="bg-red-900 hover:bg-red-800 px-4 py-2 rounded-lg text-xs font-bold border border-red-700 shadow-md active:scale-95 transition">RESET BOARD</button>
+                <button onclick="toggleRooms()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold border border-slate-600">TOGGLE ROOMS</button>
             </div>
         </div>
 
@@ -171,6 +192,36 @@
             fungle: "./Maps/Fungle.png"
         };
 
+        const roomData = {
+            skeld: [
+                { name: "Cafeteria", x: 50, y: 18 },
+                { name: "Weapons", x: 73, y: 22 },
+                { name: "O2", x: 75, y: 38 },
+                { name: "Navigation", x: 87, y: 45 },
+                { name: "Shields", x: 63, y: 55 },
+                { name: "Communications", x: 50, y: 58 },
+                { name: "Storage", x: 43, y: 63 },
+                { name: "Admin", x: 40, y: 52 },
+                { name: "Electrical", x: 27, y: 56 },
+                { name: "Lower Engine", x: 25, y: 72 },
+                { name: "Upper Engine", x: 25, y: 32 },
+                { name: "Reactor", x: 13, y: 40 },
+                { name: "Security", x: 30, y: 44 },
+                { name: "MedBay", x: 38, y: 30 }
+            ],
+
+            polus: [
+                { name: "Dropship", x: 48, y: 12 },
+                { name: "Laboratory", x: 70, y: 25 },
+                { name: "Electrical", x: 24, y: 52 },
+                { name: "O2", x: 55, y: 56 },
+                { name: "Weapons", x: 80, y: 42 },
+                { name: "Specimen", x: 54, y: 80 },
+                { name: "Admin", x: 35, y: 40 },
+                { name: "Storage", x: 42, y: 55 }
+            ]
+        };
+
         const allColors = [
             { name: 'Red', hex: '#C51111', shadow: '#7A0808' }, { name: 'Blue', hex: '#132ED1', shadow: '#09158E' },
             { name: 'Green', hex: '#117F2D', shadow: '#0A4D1A' }, { name: 'Pink', hex: '#ED54BA', shadow: '#AB3087' },
@@ -195,6 +246,8 @@
             { id: 'shift', label: 'Shapeshifter', color: 'bg-pink-700' },
             { id: 'phantom', label: 'Phantom', color: 'bg-purple-900' }
         ];
+
+        let showRooms = true;
 
         let state = {
             players: {},
@@ -226,6 +279,11 @@
             renderCrewList();
             changeMap('skeld');
         }
+
+        function toggleRooms() {
+             showRooms = !showRooms;
+             renderMarkers();
+         }
 
         function changeMap(mapId) { 
             state.currentMap = mapId;
@@ -276,6 +334,24 @@
 
         function updateProp(name, prop, val) { state.players[name][prop] = val; renderCrewList(); renderMarkers(); }
         function toggleDead(name) { state.players[name].status = state.players[name].status === 'alive' ? 'dead' : 'alive'; renderCrewList(); renderMarkers(); }
+
+        function renderRooms() {
+             if (!showRooms) return;
+
+             const rooms = roomData[state.currentMap];
+             if (!rooms) return;
+
+             const layer = document.getElementById("markersLayer");
+
+             rooms.forEach(r => {
+                 const div = document.createElement("div");
+                 div.className = "room-label";
+                 div.style.left = r.x + "%";
+                 div.style.top = r.y + "%";
+                 div.innerText = r.name;
+                 layer.appendChild(div);
+             });
+         }
 
         function renderMarkers() {
             const layer = document.getElementById('markersLayer');
