@@ -2,31 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modded Detective Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Among Us - Ultimate Detective Board 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Space+Mono:wght@400;700&display=swap');
         
-        :root {
-            --marker-size: 34px;
-            --tag-font: 7px;
-        }
-
-        @media (max-width: 768px) {
-            :root {
-                --marker-size: 24px;
-                --tag-font: 6px;
-            }
-        }
-
         body {
             font-family: 'Space Mono', monospace;
             background-color: #0b0e14;
             color: #e6edf3;
             touch-action: manipulation;
             user-select: none;
-            overflow-x: hidden;
         }
 
         .game-font { font-family: 'Fredoka One', cursive; }
@@ -43,25 +30,10 @@
             aspect-ratio: 16/9;
         }
 
-        @media (max-width: 640px) {
-            .map-container {
-                aspect-ratio: 4/3; /* Better for mobile viewing */
-            }
-        }
-
         #mapDisplay {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            pointer-events: none;
-        }
-
-        .markers-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             pointer-events: none;
         }
 
@@ -76,14 +48,14 @@
         }
 
         .player-marker {
-            width: var(--marker-size);
-            height: var(--marker-size);
+            width: 34px;
+            height: 34px;
             pointer-events: none;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .marker-role-tag {
-            font-size: var(--tag-font);
+            font-size: 7px;
             font-weight: 800;
             padding: 1px 4px;
             border-radius: 3px;
@@ -131,10 +103,10 @@
 
     <div class="max-w-[1700px] mx-auto">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-slate-900/60 p-3 md:p-4 rounded-2xl border border-slate-800 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 shadow-xl">
             <div class="text-center md:text-left">
-                <h1 class="text-2xl md:text-3xl game-font text-red-500 tracking-tighter uppercase italic">Modded Detective Hub</h1>
-                <div class="flex items-center justify-center md:justify-start gap-3 mt-1">
+                <h1 class="text-3xl game-font text-red-500 tracking-tighter uppercase italic">Investigation Hub</h1>
+                <div class="flex items-center gap-3 mt-1">
                     <span class="text-[10px] font-bold text-slate-500 tracking-widest">MAP PROTOCOL:</span>
                     <select id="mapSelect" onchange="changeMap(this.value)" class="bg-black text-cyan-400 text-xs font-bold p-1 px-3 rounded-full border border-slate-700 outline-none hover:border-cyan-500 transition-colors">
                         <option value="skeld">THE SKELD</option>
@@ -145,32 +117,32 @@
                     </select>
                 </div>
             </div>
-            <div class="flex flex-wrap justify-center gap-2 md:gap-3">
-                <button onclick="clearMarkers()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-xs font-bold border border-slate-600 shadow-md active:scale-95 transition">CLEAR MARKERS</button>
-                <button onclick="resetAll()" class="bg-red-900 hover:bg-red-800 px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-xs font-bold border border-red-700 shadow-md active:scale-95 transition">RESET BOARD</button>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="clearMarkers()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-xs font-bold border border-slate-600 shadow-md active:scale-95 transition">CLEAR MARKERS</button>
+                <button onclick="resetAll()" class="bg-red-900 hover:bg-red-800 px-4 py-2 rounded-lg text-xs font-bold border border-red-700 shadow-md active:scale-95 transition">RESET BOARD</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Left: Crew List -->
-            <div class="order-2 lg:order-1 lg:col-span-4 xl:col-span-3 space-y-2 max-h-[40vh] lg:max-h-[82vh] overflow-y-auto pr-2 custom-scroll">
-                <div id="crewList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-1.5"></div>
+            <div class="lg:col-span-4 xl:col-span-3 space-y-2 max-h-[82vh] overflow-y-auto pr-2 custom-scroll">
+                <div id="crewList" class="grid grid-cols-1 gap-1.5"></div>
             </div>
 
             <!-- Right: Map -->
-            <div class="order-1 lg:order-2 lg:col-span-8 xl:col-span-9 flex flex-col gap-3">
+            <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-3">
                 <div class="map-container" id="mapWrapper">
-                    <img id="mapDisplay" src="" alt="Map View" onerror="this.src='https://placehold.co/1200x675/000000/FFFFFF?text=Map+Loading...'">
-                    <div id="markersLayer" class="markers-layer"></div>
+                    <img id="mapDisplay" src="" alt="Map View">
+                    <div id="markersLayer"></div>
                 </div>
                 
-                <div class="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between text-[10px] font-bold uppercase gap-3">
-                    <div class="flex gap-4 overflow-x-auto">
-                        <div class="flex items-center gap-2 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-green-800"></span> Safe</div>
-                        <div class="flex items-center gap-2 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-yellow-800"></span> Sus</div>
-                        <div class="flex items-center gap-2 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-red-950"></span> Impostor</div>
+                <div class="bg-slate-900/40 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between text-[10px] font-bold uppercase gap-4">
+                    <div class="flex gap-4">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-800 shadow-[0_0_8px_rgba(22,101,52,0.8)]"></span> Safe</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-800 shadow-[0_0_8px_rgba(133,77,14,0.8)]"></span> Sus</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-950 shadow-[0_0_8px_rgba(69,10,10,0.8)]"></span> Impostor</div>
                     </div>
-                    <div class="text-slate-500 italic hidden sm:block">Select crewmate then tap map to pin</div>
+                    <div class="text-slate-500 italic">Select crewmate then click map to pin location</div>
                 </div>
             </div>
         </div>
@@ -180,7 +152,7 @@
         const mapData = {
             skeld: "./Maps/Skeld.png",
             mira: "./Maps/Mira.png",
-            polus: "./Maps/Polus.png"",
+            polus: "./Maps/Polus.png",
             airship: "./Maps/Airship.png",
             fungle: "./Maps/Fungle.png"
         };
@@ -262,25 +234,25 @@
                 card.onclick = () => { state.selectedColor = c.name; renderCrewList(); };
 
                 card.innerHTML = `
-                    <div class="flex items-center gap-2 md:gap-3">
-                        <div class="w-8 h-8 md:w-10 md:h-10 ${p.status === 'dead' ? 'opacity-30 grayscale' : ''}">${getCrewSVG(c, p.status === 'dead')}</div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 ${p.status === 'dead' ? 'opacity-30 grayscale' : ''}">${getCrewSVG(c, p.status === 'dead')}</div>
                         <div class="flex flex-col">
-                            <p class="font-bold text-[10px] md:text-[11px] uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-400'}">${c.name}</p>
-                            <span class="role-tag ${currentRole.color} text-[7px] md:text-[8px] text-white w-max px-1 md:px-2">${currentRole.label}</span>
+                            <p class="font-bold text-[11px] uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-400'}">${c.name}</p>
+                            <span class="role-tag ${currentRole.color} text-[8px] text-white w-max">${currentRole.label}</span>
                         </div>
                     </div>
                     <div class="flex flex-col gap-1 items-end">
-                        <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'role', this.value)" class="text-[8px] md:text-[9px] bg-black p-0.5 md:p-1 rounded-md border border-slate-700 w-16 md:w-24 outline-none">
+                        <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'role', this.value)" class="text-[9px] bg-black p-1 rounded-md border border-slate-700 w-24 outline-none">
                             ${roles.map(r => `<option value="${r.id}" ${p.role === r.id ? 'selected' : ''}>${r.label}</option>`).join('')}
                         </select>
                         <div class="flex gap-1">
-                            <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'sus', this.value)" class="text-[8px] md:text-[9px] bg-black p-0.5 md:p-1 rounded-md border border-slate-700 outline-none">
+                            <select onclick="event.stopPropagation()" onchange="updateProp('${c.name}', 'sus', this.value)" class="text-[9px] bg-black p-1 rounded-md border border-slate-700 outline-none">
                                 <option value="neutral" ${p.sus === 'neutral'?'selected':''}>NTRL</option>
                                 <option value="safe" ${p.sus === 'safe'?'selected':''}>SAFE</option>
                                 <option value="sus" ${p.sus === 'sus'?'selected':''}>SUS</option>
                                 <option value="impostor" ${p.sus === 'impostor'?'selected':''}>IMP</option>
                             </select>
-                            <button onclick="event.stopPropagation(); toggleDead('${c.name}')" class="text-[8px] md:text-[9px] py-0.5 md:py-1 px-1.5 md:px-2 rounded-md font-bold ${p.status === 'dead' ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-300'} transition-colors">${p.status === 'dead' ? 'DEAD' : 'ALIVE'}</button>
+                            <button onclick="event.stopPropagation(); toggleDead('${c.name}')" class="text-[9px] py-1 px-2 rounded-md font-bold ${p.status === 'dead' ? 'bg-red-600' : 'bg-slate-700 hover:bg-slate-600'} transition-colors">${p.status === 'dead' ? 'DEAD' : 'ALIVE'}</button>
                         </div>
                     </div>
                 `;
@@ -303,18 +275,20 @@
                 wrapper.className = 'marker-wrapper';
                 wrapper.style.left = `${m.x}%`; wrapper.style.top = `${m.y}%`;
 
+                // Role Tag above marker
                 const roleTag = document.createElement('div');
                 roleTag.className = `marker-role-tag ${currentRole.color}`;
                 roleTag.innerText = currentRole.label;
                 wrapper.appendChild(roleTag);
 
+                // Marker with adjusted glow
                 const div = document.createElement('div');
                 div.className = 'player-marker';
                 const glows = { 
-                    neutral: '0 2px 4px rgba(0,0,0,0.6)', 
-                    safe: '0 0 8px rgba(22,163,74,0.9)', 
-                    sus: '0 0 8px rgba(234,179,8,0.9)', 
-                    impostor: '0 0 10px rgba(220,38,38,1)' 
+                    neutral: '0 3px 6px rgba(0,0,0,0.6)', 
+                    safe: '0 0 10px rgba(21,128,61,0.9)', 
+                    sus: '0 0 10px rgba(161,98,7,0.9)', 
+                    impostor: '0 0 12px rgba(127,29,29,1)' 
                 };
                 div.style.filter = `drop-shadow(${glows[p.sus]})`;
                 div.innerHTML = getCrewSVG(colorObj, p.status === 'dead');
@@ -324,45 +298,18 @@
             });
         }
 
-        const handleMapClick = (e) => {
-            const rect = document.getElementById('mapWrapper').getBoundingClientRect();
-            
-            // Handle both touch and mouse
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-            const xPercent = ((clientX - rect.left) / rect.width) * 100;
-            const yPercent = ((clientY - rect.top) / rect.height) * 100;
-
-            // Bounds check
-            if (xPercent < 0 || xPercent > 100 || yPercent < 0 || yPercent > 100) return;
-
+        document.getElementById('mapWrapper').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+            const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
             const existingIdx = state.markers.findIndex(m => m.color === state.selectedColor);
-            if (existingIdx > -1) { 
-                state.markers[existingIdx].x = xPercent; 
-                state.markers[existingIdx].y = yPercent; 
-            } else { 
-                state.markers.push({ color: state.selectedColor, x: xPercent, y: yPercent }); 
-            }
+            if (existingIdx > -1) { state.markers[existingIdx].x = xPercent; state.markers[existingIdx].y = yPercent; }
+            else { state.markers.push({ color: state.selectedColor, x: xPercent, y: yPercent }); }
             renderMarkers();
-        };
-
-        const mapEl = document.getElementById('mapWrapper');
-        mapEl.addEventListener('mousedown', handleMapClick);
-        mapEl.addEventListener('touchstart', (e) => {
-            // Prevent scrolling while pinning
-            handleMapClick(e);
-        }, { passive: true });
+        });
 
         function clearMarkers() { state.markers = []; renderMarkers(); }
-        function resetAll() { 
-            const modal = document.createElement('div');
-            // Custom simplified confirm for iframe environment
-            if(window.confirm("RESET ALL DATA?")) { 
-                state.markers = []; 
-                init(); 
-            } 
-        }
+        function resetAll() { if(confirm("RESET ALL DATA?")) { state.markers = []; init(); } }
 
         init();
     </script>
